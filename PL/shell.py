@@ -3,9 +3,14 @@ __author__ = 'ISHIMWE Prince Christian <princechrix.dev@gmail.com>'
 
 
 
-
-from basic import *
+import basic 
 
 while True:
     text = input("kinyaScrpit :: > ")
-    print(text)
+    result, error = basic.run(text)
+
+
+    if error:
+        print(error.as_string())
+    else:
+        print(result)
