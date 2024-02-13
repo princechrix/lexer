@@ -18,11 +18,12 @@ class Error:
 
     def as_string(self):
         result = f'{self.error_name}: {self.details}'
+        result = f'File {self.pos_start.fn}, line {self.pos_start.ln + 1}'
         return result
 
 class IllegalCharError(Error):
-    def __init__(self, details):
-        super().__init__('Illegal Character', details)
+    def __init__(self, pos_start, pos_end, details):
+        super().__init__(pos_start, pos_end,'Illegal Character', details)
 
 
 ###############################################
@@ -30,10 +31,12 @@ class IllegalCharError(Error):
 ###############################################
 
 class Position: 
-    def __init__(self, idx, ln, col):
+    def __init__(self, idx, ln, col, fn, ftxt):
         self.idx = idx
         self.ln = ln
         self.col = col
+        self.fn = fn
+        self.ftxt = ftxt
 
     def advance(self, current_char):
         self.idx += 1
@@ -46,7 +49,7 @@ class Position:
         return self
     
     def copy(self):
-        return Position(self.idx, self.ln, self.col)
+        return Position(self.idx, self.ln, self.col, self.fn, self.ftxt)
         
 
 
@@ -84,14 +87,15 @@ class Token:
     
 
 class Lexer:
-    def __init__(self, text):
+    def __init__(self, fn, text):
+        self.fn = fn
         self.text = text
-        self.pos = Position(-1, 0, -1)
+        self.pos = Position(-1, 0, -1, fn, text)
         self.current_char = None
         self.advance()
 
     def advance(self):
-        self.pos.advance()
+        self.pos.advance(self.current_char)
         self.current_char = self.text[self.pos.idx] if self.pos.idx < len(self.text) else None
 
     def make_tokens(self):
@@ -123,9 +127,10 @@ class Lexer:
 
             else:
                 # if we dont find character we return Error
+                pos_start = self.pos.copy()
                 char = self.current_char
                 self.advance()
-                return [], IllegalCharError("'" + char + "'")
+                return [], IllegalCharError(pos_start, self.pos, "'" + char + "'")
 
         return tokens, None
     
@@ -154,8 +159,8 @@ class Lexer:
 #   RUN
 ###############################################
         
-def run(text):
-    lexer = Lexer(text)
+def run(fn, text):
+    lexer = Lexer(fn, text)
     tokens, error = lexer.make_tokens()
 
     return tokens, error

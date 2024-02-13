@@ -7,7 +7,7 @@ import basic
 
 while True:
     text = input("kinyaScrpit :: > ")
-    result, error = basic.run(text)
+    result, error = basic.run('<stdin>', text)
 
 
     if error:
